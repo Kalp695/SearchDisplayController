@@ -47,3 +47,128 @@
 }
 
 @end
+//
+//  HomeViewController.m
+//  SearchDisplay Controller
+//
+//  Created by NLS17 on 18/07/14.
+//  Copyright (c) 2014 Kalpit Gajera. All rights reserved.
+//
+
+#import "HomeViewController.h"
+
+@interface HomeViewController ()
+
+@end
+
+@implementation HomeViewController
+
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+{
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    if (self) {
+        // Custom initialization
+    }
+    return self;
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    self.edgesForExtendedLayout=0;
+    self.title=@"Search";
+    arrData =[[NSMutableArray alloc]initWithObjects:@"India",@"Antigua & Deps"
+              ,@"Argentina",@"Armenia",@"Australia",@"Austria",@"Azerbaijan",@"Bahamas",@" Bahrain",@" Bangladesh",@" Barbados",@"Brazil ",@"Brunei",@"Bulgaria",@"Burkina",@"Burundi",@"Cambodia",@"Cameroon",@"Canada",@"Cyprus",@"Czech Republic",@"Denmark",@"Djibouti",@"Dominica",@"Estonia",@"Ethiopia",@"Fiji",@"Finland",@"France",@"Gabon",@"Gambia",@"Georgia",@"Germany",@"Ghana",@"Haiti",@"Honduras",@"Hungary",@"Iceland",@"India",@"Indonesia",@"Iran",@"Italy",@"Ivory Coast",@"Jamaica",@"Japan",@"Jordan",@"Kazakhstan",@"Kenya",@"Kiribati",@"Korea North",@"Korea South",@"Kosovo",@"Kuwait",@"Lithuania",@"Luxembourg",@"Macedonia",@"Madagascar",@"Malawi",@"Nicaragua",@"Niger",@"Nigeria",@"Norway",@"Oman",@"Pakistan",@"Palau",@"Panama",@"Qatar",@"             Romania",@"Russian Federation",@"Rwanda",@"St Kitts & Nevis",@"St Lucia",@"Saint Vincent & the Grenadines",@"Samoa",@"Turkmenistan",@"Tuvalu",@"Uganda",@"Ukraine",@"United Arab Emirates",@"United Kingdom",@"United States",@"Uruguay",@"Uzbekistan",@"Vanuatu",@"Vatican City",@"Venezuela",@"Vietnam",@"Yemen",@"Zambia",@"Zimbabwe", nil];
+    // Do any additional setup after loading the view from its nib.
+}
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section;
+{
+    if(tableView==self.searchDisplayController.searchResultsTableView){
+        return arrFilterdata.count;
+    }else
+    return arrData.count;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath;
+{
+    static NSString *CellIdentifier = @"Cell";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if ( cell == nil ) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+    }
+    if(tableView==self.searchDisplayController.searchResultsTableView){
+        cell.textLabel.text=[arrFilterdata objectAtIndex:indexPath.row];
+
+    }else{
+    cell.textLabel.text=[arrData objectAtIndex:indexPath.row];
+    }
+    return cell;
+
+}
+- (void)searchBarCancelButtonClicked:(UISearchBar *) searchBar;                    // called when cancel button pressed
+{
+    [tblView reloadData];
+}
+
+#pragma mark - UISearchDisplayController Delegate Methods
+
+- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
+{
+    // Tells the table data source to reload when text changes
+    [self filterContentForSearchText:searchString scope:
+     [[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:[self.searchDisplayController.searchBar selectedScopeButtonIndex]]];
+    
+    // Return YES to cause the search result table view to be reloaded.
+    return YES;
+}
+
+
+- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchScope:(NSInteger)searchOption
+{
+    // Tells the table data source to reload when scope bar selection changes
+    [self filterContentForSearchText:[self.searchDisplayController.searchBar text] scope:
+     [[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:searchOption]];
+    
+    // Return YES to cause the search result table view to be reloaded.
+    return YES;
+}
+#pragma mark Content Filtering
+
+- (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope
+{
+	// Update the filtered array based on the search text and scope.
+	
+/*    arrdata1=[NSMutableArray arrayWithArray:arrData];
+    // Remove all objects from the filtered search array
+    
+	// Filter the array using NSPredicate
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF beginswith[c] %@",searchText];
+    NSArray *tempArray = [arrdata1 filteredArrayUsingPredicate:predicate];
+    [arrData removeAllObjects];
+    arrData = [NSMutableArray arrayWithArray:tempArray];
+  */
+    
+    
+    // Update the filtered array based on the search text and scope.
+	
+    // Remove all objects from the filtered search array
+	[arrFilterdata removeAllObjects];
+    
+	// Filter the array using NSPredicate
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF beginswith[c] %@",searchText];
+    NSArray *tempArray = [arrData filteredArrayUsingPredicate:predicate];
+    
+   
+    
+    arrFilterdata = [NSMutableArray arrayWithArray:tempArray];
+    
+}
+
+
+@end
