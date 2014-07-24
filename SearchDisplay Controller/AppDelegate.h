@@ -38,6 +38,14 @@
 
 
 
+//
+//  AppDelegate.m
+//  rtfToPdf
+//
+//  Created by NLS17 on 23/07/14.
+//
+//
+
 #import "AppDelegate.h"
 
 @implementation AppDelegate
@@ -54,7 +62,7 @@
     NSLog(@"%@",contents_for_pdf);
     contents_for_pdf = [contents_for_pdf stringByReplacingOccurrencesOfString:@"I am new to StackOverflow" withString:@"I regularly visit StackOverflow"];
     
-    pageSize = CGSizeMake(612, 792);
+    pageSize = CGSizeMake(640, 960);
     NSString *fileName = @"Demo.pdf";
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
@@ -89,6 +97,7 @@
                                                                                             NSCharacterEncodingDocumentAttribute: [NSNumber numberWithInt:NSUTF8StringEncoding]}
                                                                        documentAttributes:nil
                                                                                     error:nil];
+    NSLog(@"height %f  width %f",myString.size.height,myString.size.width);
     NSRange myRange;
     myRange.location = 0;
     myRange.length = myString.length;
@@ -100,16 +109,19 @@
     
     // fill rect so we can visualize the frame
     CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSetFillColorWithColor(context, [UIColor lightGrayColor].CGColor);
+    CGContextSetFillColorWithColor(context, [UIColor whiteColor].CGColor);
     CGContextFillRect(context, renderingRect);
     
     //[myString drawInRect:renderingRect];
     [myString drawWithRect:renderingRect options:NSStringDrawingUsesLineFragmentOrigin context:sdctx];
     
     
-    
-   
-    
+
+    for(int i= 1 ; i <5 ;i++){
+    UIGraphicsBeginPDFPageWithInfo(CGRectMake(0, 0, pageSize.width, pageSize.height), nil);
+     UIImage * demoImage = [UIImage imageNamed:[NSString stringWithFormat:@"%d.jpeg",i]];
+    [demoImage drawInRect:CGRectMake( 0, 0, demoImage.size.width/2, demoImage.size.height/2)];
+    }
     UIGraphicsEndPDFContext();
     
     UIAlertView *Alert = [[UIAlertView alloc] initWithTitle:@"PDF Created" message:@"Sucessfull" delegate:self cancelButtonTitle:@"ok" otherButtonTitles:nil, nil];
