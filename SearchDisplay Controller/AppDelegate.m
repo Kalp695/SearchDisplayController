@@ -1,9 +1,9 @@
 //
 //  AppDelegate.m
-//  SearchDisplay Controller
+//  rtfToPdf
 //
-//  Created by NLS17 on 18/07/14.
-//  Copyright (c) 2014 Kalpit Gajera. All rights reserved.
+//  Created by NLS17 on 23/07/14.
+//
 //
 
 #import "AppDelegate.h"
@@ -16,8 +16,214 @@
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
+    
+    NSString *rtf_path = [[NSBundle mainBundle] pathForResource:@"Example" ofType:@"rtf"];
+    contents_for_pdf = [[NSString alloc] initWithContentsOfFile:rtf_path encoding:NSUTF8StringEncoding error:nil];
+    NSLog(@"%@",contents_for_pdf);
+    contents_for_pdf = [contents_for_pdf stringByReplacingOccurrencesOfString:@"I am new to StackOverflow" withString:@"I regularly visit StackOverflow"];
+    
+    pageSize = CGSizeMake(640, 960);
+    NSString *fileName = @"Demo.pdf";
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    pdfFileName = [documentsDirectory stringByAppendingPathComponent:fileName];
+    
+    //[self generatePdfWithFilePath:pdfFileName];
+    [self savePDFFile:pdfFileName];
+
     return YES;
 }
+- (void) generatePdfWithFilePath: (NSString *)thefilePath
+{
+    UIGraphicsBeginPDFContextToFile(thefilePath, CGRectZero, nil);
+    //Start a new page.
+    UIGraphicsBeginPDFPageWithInfo(CGRectMake(0, 0, pageSize.width, pageSize.height), nil);
+    
+    //Draw text fo our header.
+    
+    CGContextRef    currentContext = UIGraphicsGetCurrentContext();
+    CGContextSetRGBFillColor(currentContext, 0.0, 0.0, 0.0, 1.0);
+    
+    UIFont *font = [UIFont systemFontOfSize:14.0];
+    
+    CGSize stringSize = [contents_for_pdf sizeWithFont:font
+                                     constrainedToSize:CGSizeMake(pageSize.width - 2*kBorderInset-2*kMarginInset, pageSize.height - 2*kBorderInset - 2*kMarginInset)
+                                         lineBreakMode:UILineBreakModeWordWrap];
+    
+    CGRect renderingRect = CGRectMake(kBorderInset + kMarginInset, kBorderInset + kMarginInset + 50.0, pageSize.width - 2*kBorderInset - 2*kMarginInset, stringSize.height);
+    NSString *rtf_path = [[NSBundle mainBundle] pathForResource:@"Example" ofType:@"rtf"];
+    contents_for_pdf = [[NSString alloc] initWithContentsOfFile:rtf_path encoding:NSUTF8StringEncoding error:nil];
+    NSData *datd=[[NSData alloc]initWithContentsOfFile:rtf_path];
+    NSMutableAttributedString *myString = [[NSMutableAttributedString alloc] initWithData:datd
+                                                                                  options:@{NSDocumentTypeDocumentAttribute: NSRTFTextDocumentType,
+                                                                                            NSCharacterEncodingDocumentAttribute: [NSNumber numberWithInt:NSUTF8StringEncoding]}
+                                                                       documentAttributes:nil
+                                                                                    error:nil];
+    NSLog(@"height %f  width %f",myString.size.height,myString.size.width);
+    NSRange myRange;
+    myRange.location = 0;
+    myRange.length = myString.length;
+    
+    
+    //Calculate frame
+    NSStringDrawingContext *sdctx = [[NSStringDrawingContext alloc] init];
+    
+    
+    // fill rect so we can visualize the frame
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(context, [UIColor whiteColor].CGColor);
+    CGContextFillRect(context, renderingRect);
+    
+    
+    CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString((__bridge CFAttributedStringRef)myString);
+    CGSize targetSize = CGSizeMake(320, CGFLOAT_MAX);
+    
+    CGRect paragraphRect = [myString boundingRectWithSize:CGSizeMake(300.f, CGFLOAT_MAX)
+                                 options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)
+                                 context:nil];
+    //[myString drawInRect:renderingRect];
+    [myString drawWithRect:renderingRect options:NSStringDrawingUsesLineFragmentOrigin context:sdctx];
+    
+    
+
+    for(int i= 1 ; i <5 ;i++){
+    UIGraphicsBeginPDFPageWithInfo(CGRectMake(0, 0, pageSize.width, pageSize.height), nil);
+     UIImage * demoImage = [UIImage imageNamed:[NSString stringWithFormat:@"%d.jpeg",i]];
+    [demoImage drawInRect:CGRectMake( 0, 0, demoImage.size.width/2, demoImage.size.height/2)];
+    }
+    UIGraphicsEndPDFContext();
+    
+    UIAlertView *Alert = [[UIAlertView alloc] initWithTitle:@"PDF Created" message:@"Sucessfull" delegate:self cancelButtonTitle:@"ok" otherButtonTitles:nil, nil];
+    [Alert show];
+}
+
+- (void)savePDFFile:(NSString *)file_Name
+{
+//    NSString *homeDir = NSHomeDirectory();
+//    NSString *saveDirectory = [NSString stringWithFormat: @"%@/%@", homeDir, @"Documents/"];
+//    
+//    
+//    NSArray *fileAr = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:saveDirectory error:nil];
+//    NSMutableArray *textArray = [[NSMutableArray alloc] init];
+//    NSInteger currentPage = 0;
+//    NSInteger currentFile = 0;
+//    
+//    
+//    for (NSString *string in fileAr) {
+//        if([string hasSuffix:@"txt"]){
+//            NSString *file = [NSString stringWithFormat: @"%@/%@", saveDirectory, string];
+//            NSString *text =[NSString stringWithContentsOfFile:file encoding:NSUTF8StringEncoding error:nil];
+//            completeString = [NSString stringWithFormat:@"%@%@", completeString, text];
+//        }
+//    }
+    
+    NSInteger currentPage = 0;
+    NSInteger currentFile = 0;
+    UIFont *font = [UIFont systemFontOfSize:14.0];
+
+    CGSize stringSize = [contents_for_pdf sizeWithFont:font
+                                     constrainedToSize:CGSizeMake(pageSize.width - 2*kBorderInset-2*kMarginInset, pageSize.height - 2*kBorderInset - 2*kMarginInset)
+                                         lineBreakMode:NSLineBreakByWordWrapping];
+    
+    CGRect renderingRect = CGRectMake(kBorderInset + kMarginInset, kBorderInset + kMarginInset + 50.0, pageSize.width - 2*kBorderInset - 2*kMarginInset, stringSize.height);
+    NSString *rtf_path = [[NSBundle mainBundle] pathForResource:@"Example" ofType:@"rtf"];
+    contents_for_pdf = [[NSString alloc] initWithContentsOfFile:rtf_path encoding:NSUTF8StringEncoding error:nil];
+    NSData *datd=[[NSData alloc]initWithContentsOfFile:rtf_path];
+    NSMutableAttributedString *myString = [[NSMutableAttributedString alloc] initWithData:datd
+                                                                                  options:@{NSDocumentTypeDocumentAttribute: NSRTFTextDocumentType,
+                                                                                            NSCharacterEncodingDocumentAttribute: [NSNumber numberWithInt:NSUTF8StringEncoding]}
+                                                                       documentAttributes:nil
+                                                                                    error:nil];
+    NSLog(@"height %f  width %f",myString.size.height,myString.size.width);
+    NSRange myRange;
+    myRange.location = 0;
+    myRange.length = myString.length;
+
+    
+    NSString* pdfFileName = file_Name;
+    
+    // Create the PDF context using the default page size of 612 x 792.
+    UIGraphicsBeginPDFContextToFile(pdfFileName, CGRectZero, nil);
+    
+    CFRange currentRange = CFRangeMake(0, 0);
+        BOOL done = NO;
+    
+    
+    
+        CFAttributedStringRef currentText = CFAttributedStringCreate(NULL, (CFStringRef)myString, NULL);
+    CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString((CFAttributedStringRef)myString);
+
+       // currentPage = currentPage;
+        while (!done){
+            // Mark the beginning of a new page.
+            UIGraphicsBeginPDFPageWithInfo(CGRectMake(0, 0, 612, 792), nil);
+            
+            // Draw a page number at the bottom of each page
+            currentPage++;
+           // [self drawPageNumber:currentPage];
+            
+            
+            
+            // Render the current page and update the current range to
+            // point to the beginning of the next page.
+            currentRange = [self renderPage:currentPage withTextRange:currentRange andFramesetter:framesetter];
+            // If we're at the end of the text, exit the loop.
+            if (currentRange.location == CFAttributedStringGetLength((CFAttributedStringRef)currentText))
+                done = YES;
+            
+        }
+        currentFile ++;
+        CFRelease(framesetter);
+        CFRelease(currentText);
+    // Close the PDF context and write the contents out.
+    UIGraphicsEndPDFContext();
+    UIAlertView *Alert = [[UIAlertView alloc] initWithTitle:@"PDF Created" message:@"Sucessfull" delegate:self cancelButtonTitle:@"ok" otherButtonTitles:nil, nil];
+    [Alert show];
+    
+}
+
+
+// Use Core Text to draw the text in a frame on the page.
+- (CFRange)renderPage:(NSInteger)pageNum withTextRange:(CFRange)currentRange
+       andFramesetter:(CTFramesetterRef)framesetter
+{
+    // Get the graphics context.
+    CGContextRef    currentContext = UIGraphicsGetCurrentContext();
+    
+    // Put the text matrix into a known state. This ensures
+    // that no old scaling factors are left in place.
+    CGContextSetTextMatrix(currentContext, CGAffineTransformIdentity);
+    
+    // Create a path object to enclose the text. Use 72 point
+    // margins all around the text.
+    CGRect    frameRect = CGRectMake(72, 72, 500, 648);
+    CGMutablePathRef framePath = CGPathCreateMutable();
+    CGPathAddRect(framePath, NULL, frameRect);
+    
+    // Get the frame that will do the rendering.
+    // The currentRange variable specifies only the starting point. The framesetter
+    // lays out as much text as will fit into the frame.
+    CTFrameRef frameRef = CTFramesetterCreateFrame(framesetter, currentRange, framePath, NULL);
+    CGPathRelease(framePath);
+    
+    // Core Text draws from the bottom-left corner up, so flip
+    // the current transform prior to drawing.
+    CGContextTranslateCTM(currentContext, 0, 792);
+    CGContextScaleCTM(currentContext, 1.0, -1.0);
+    
+    // Draw the frame.
+    CTFrameDraw(frameRef, currentContext);
+    
+    // Update the current range based on what was drawn.
+    currentRange = CTFrameGetVisibleStringRange(frameRef);
+    currentRange.location += currentRange.length;
+    currentRange.length = 0;
+    //    CFRelease(frameRef);
+    
+    return currentRange;
+}
+
+
 
 - (void)applicationWillResignActive:(UIApplication *)application
 {
@@ -45,130 +251,5 @@
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
-
-@end
-//
-//  HomeViewController.m
-//  SearchDisplay Controller
-//
-//  Created by NLS17 on 18/07/14.
-//  Copyright (c) 2014 Kalpit Gajera. All rights reserved.
-//
-
-#import "HomeViewController.h"
-
-@interface HomeViewController ()
-
-@end
-
-@implementation HomeViewController
-
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-    if (self) {
-        // Custom initialization
-    }
-    return self;
-}
-
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-    self.edgesForExtendedLayout=0;
-    self.title=@"Search";
-    arrData =[[NSMutableArray alloc]initWithObjects:@"India",@"Antigua & Deps"
-              ,@"Argentina",@"Armenia",@"Australia",@"Austria",@"Azerbaijan",@"Bahamas",@" Bahrain",@" Bangladesh",@" Barbados",@"Brazil ",@"Brunei",@"Bulgaria",@"Burkina",@"Burundi",@"Cambodia",@"Cameroon",@"Canada",@"Cyprus",@"Czech Republic",@"Denmark",@"Djibouti",@"Dominica",@"Estonia",@"Ethiopia",@"Fiji",@"Finland",@"France",@"Gabon",@"Gambia",@"Georgia",@"Germany",@"Ghana",@"Haiti",@"Honduras",@"Hungary",@"Iceland",@"India",@"Indonesia",@"Iran",@"Italy",@"Ivory Coast",@"Jamaica",@"Japan",@"Jordan",@"Kazakhstan",@"Kenya",@"Kiribati",@"Korea North",@"Korea South",@"Kosovo",@"Kuwait",@"Lithuania",@"Luxembourg",@"Macedonia",@"Madagascar",@"Malawi",@"Nicaragua",@"Niger",@"Nigeria",@"Norway",@"Oman",@"Pakistan",@"Palau",@"Panama",@"Qatar",@"             Romania",@"Russian Federation",@"Rwanda",@"St Kitts & Nevis",@"St Lucia",@"Saint Vincent & the Grenadines",@"Samoa",@"Turkmenistan",@"Tuvalu",@"Uganda",@"Ukraine",@"United Arab Emirates",@"United Kingdom",@"United States",@"Uruguay",@"Uzbekistan",@"Vanuatu",@"Vatican City",@"Venezuela",@"Vietnam",@"Yemen",@"Zambia",@"Zimbabwe", nil];
-    // Do any additional setup after loading the view from its nib.
-}
-
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section;
-{
-    if(tableView==self.searchDisplayController.searchResultsTableView){
-        return arrFilterdata.count;
-    }else
-    return arrData.count;
-}
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath;
-{
-    static NSString *CellIdentifier = @"Cell";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    if ( cell == nil ) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
-    }
-    if(tableView==self.searchDisplayController.searchResultsTableView){
-        cell.textLabel.text=[arrFilterdata objectAtIndex:indexPath.row];
-
-    }else{
-    cell.textLabel.text=[arrData objectAtIndex:indexPath.row];
-    }
-    return cell;
-
-}
-- (void)searchBarCancelButtonClicked:(UISearchBar *) searchBar;                    // called when cancel button pressed
-{
-    [tblView reloadData];
-}
-
-#pragma mark - UISearchDisplayController Delegate Methods
-
-- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
-{
-    // Tells the table data source to reload when text changes
-    [self filterContentForSearchText:searchString scope:
-     [[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:[self.searchDisplayController.searchBar selectedScopeButtonIndex]]];
-    
-    // Return YES to cause the search result table view to be reloaded.
-    return YES;
-}
-
-
-- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchScope:(NSInteger)searchOption
-{
-    // Tells the table data source to reload when scope bar selection changes
-    [self filterContentForSearchText:[self.searchDisplayController.searchBar text] scope:
-     [[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:searchOption]];
-    
-    // Return YES to cause the search result table view to be reloaded.
-    return YES;
-}
-#pragma mark Content Filtering
-
-- (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope
-{
-	// Update the filtered array based on the search text and scope.
-	
-/*    arrdata1=[NSMutableArray arrayWithArray:arrData];
-    // Remove all objects from the filtered search array
-    
-	// Filter the array using NSPredicate
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF beginswith[c] %@",searchText];
-    NSArray *tempArray = [arrdata1 filteredArrayUsingPredicate:predicate];
-    [arrData removeAllObjects];
-    arrData = [NSMutableArray arrayWithArray:tempArray];
-  */
-    
-    
-    // Update the filtered array based on the search text and scope.
-	
-    // Remove all objects from the filtered search array
-	[arrFilterdata removeAllObjects];
-    
-	// Filter the array using NSPredicate
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF beginswith[c] %@",searchText];
-    NSArray *tempArray = [arrData filteredArrayUsingPredicate:predicate];
-    
-   
-    
-    arrFilterdata = [NSMutableArray arrayWithArray:tempArray];
-    
-}
-
 
 @end
