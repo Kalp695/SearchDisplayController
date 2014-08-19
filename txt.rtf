@@ -33,3 +33,123 @@ https://imageoptim.com/
     return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory
                                                    inDomains:NSUserDomainMask] lastObject];
 }
+
+
+http://www.innovaptor.com/blog/2012/10/21/splitting-pdf-into-pages-on-ios.html
+Split pdf
+
+-(void)splitPDF:(NSURL *)sourcePDFUrl withOutputName:(NSString *)outputBaseName intoDirectory:(NSString *)directory
+{
+    // Reference to the Document
+    CGPDFDocumentRef SourcePDFDocument = CGPDFDocumentCreateWithURL((__bridge CFURLRef)sourcePDFUrl);
+    // Get the number of pages in the Document
+    size_t numberOfPages = CGPDFDocumentGetNumberOfPages(SourcePDFDocument);
+
+    // Check the directory and create if not existent
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString *filePathAndDirectory = [documentsDirectory stringByAppendingPathComponent:directory];
+    NSError *error;
+    if (![[NSFileManager defaultManager] createDirectoryAtPath:filePathAndDirectory
+                                   withIntermediateDirectories:NO
+                                                    attributes:nil
+                                                         error:&error])
+    {
+        NSLog(@"Create directory error: %@", error);
+    }
+    // PDFPageReferences start to count the page numbers from 1 rather than 0
+    for(int currentPage = 1; currentPage <= numberOfPages; currentPage ++ )
+    {
+        // Iterate over all PDF-Pages in the Source-Document
+        // Reference to Page current Page
+        CGPDFPageRef SourcePDFPage = CGPDFDocumentGetPage(SourcePDFDocument, currentPage);
+        // CoreGraphics: MUST retain the Page-Refernce manually
+        CGPDFPageRetain(SourcePDFPage);
+
+        // Build Path for the Output-File based on the directory, outputBaseName and current Page
+        NSString *relativeOutputFilePath = [NSString stringWithFormat:@"%@/%@%d.pdf", directory, outputBaseName, currentPage];
+        NSString *pdfFileName = [documentsDirectory stringByAppendingPathComponent:relativeOutputFilePath];
+
+        // Get the Size of the Page in the Source-PDF
+        CGRect sourceRect = CGPDFPageGetBoxRect(SourcePDFPage, kCGPDFMediaBox);
+        // Start PDF-Context for the File --> if not existent, the file will be created
+        UIGraphicsBeginPDFContextToFile(pdfFileName, sourceRect, nil);
+        // Start a ne PDF-Page --> MUST be done!!!
+        UIGraphicsBeginPDFPage();
+        // Get the current Context
+        CGContextRef context = UIGraphicsGetCurrentContext();
+        // Flip the context so that the PDF page is rendered right side up.
+        CGContextTranslateCTM(context, 0.0, sourceRect.size.height);
+        CGContextScaleCTM(context, 1.0, -1.0);
+        // Draw the PDF Page into the new Page
+        CGContextDrawPDFPage(context, SourcePDFPage);
+        // Close the PDF-Context which also writes the PDF to disk
+        UIGraphicsEndPDFContext();
+        // Manually release the Source PDFPage Referene
+        CGPDFPageRelease(SourcePDFPage);
+    }
+}
+
+Mergr pdf
+
+
+// Documents dir
+NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+NSString *documentsDirectory = [paths objectAtIndex:0];
+
+// File paths
+NSString *pdfPath1 = [documentsDirectory stringByAppendingPathComponent:@"1.pdf"];
+NSString *pdfPath2 = [documentsDirectory stringByAppendingPathComponent:@"2.pdf"];
+NSString *pdfPathOutput = [documentsDirectory stringByAppendingPathComponent:@"out.pdf"];
+
+// File URLs
+CFURLRef pdfURL1 = (CFURLRef)[[NSURL alloc] initFileURLWithPath:pdfPath1];
+CFURLRef pdfURL2 = (CFURLRef)[[NSURL alloc] initFileURLWithPath:pdfPath2];
+CFURLRef pdfURLOutput = (CFURLRef)[[NSURL alloc] initFileURLWithPath:pdfPathOutput];
+
+// File references
+CGPDFDocumentRef pdfRef1 = CGPDFDocumentCreateWithURL((CFURLRef) pdfURL1);
+CGPDFDocumentRef pdfRef2 = CGPDFDocumentCreateWithURL((CFURLRef) pdfURL2);
+
+// Number of pages
+NSInteger numberOfPages1 = CGPDFDocumentGetNumberOfPages(pdfRef1);
+NSInteger numberOfPages2 = CGPDFDocumentGetNumberOfPages(pdfRef2);
+
+// Create the output context
+CGContextRef writeContext = CGPDFContextCreateWithURL(pdfURLOutput, NULL, NULL);
+
+// Loop variables
+CGPDFPageRef page;
+CGRect mediaBox;
+
+// Read the first PDF and generate the output pages
+NSLog(@"GENERATING PAGES FROM PDF 1 (%i)...", numberOfPages1);
+for (int i=1; i<=numberOfPages1; i++) {
+    page = CGPDFDocumentGetPage(pdfRef1, i);
+    mediaBox = CGPDFPageGetBoxRect(page, kCGPDFMediaBox);
+    CGContextBeginPage(writeContext, &mediaBox);
+    CGContextDrawPDFPage(writeContext, page);
+    CGContextEndPage(writeContext);
+}
+
+// Read the second PDF and generate the output pages
+NSLog(@"GENERATING PAGES FROM PDF 2 (%i)...", numberOfPages2);
+for (int i=1; i<=numberOfPages2; i++) {
+    page = CGPDFDocumentGetPage(pdfRef2, i);
+    mediaBox = CGPDFPageGetBoxRect(page, kCGPDFMediaBox);
+    CGContextBeginPage(writeContext, &mediaBox);
+    CGContextDrawPDFPage(writeContext, page);
+    CGContextEndPage(writeContext);      
+}
+NSLog(@"DONE!");
+
+// Finalize the output file
+CGPDFContextClose(writeContext);
+
+// Release from memory
+CFRelease(pdfURL1);
+CFRelease(pdfURL2);
+CFRelease(pdfURLOutput);
+CGPDFDocumentRelease(pdfRef1);
+CGPDFDocumentRelease(pdfRef2);
+CGContextRelease(writeContext);
