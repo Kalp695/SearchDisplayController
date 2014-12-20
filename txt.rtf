@@ -160,3 +160,62 @@ CFRelease(pdfURLOutput);
 CGPDFDocumentRelease(pdfRef1);
 CGPDFDocumentRelease(pdfRef2);
 CGContextRelease(writeContext);
+
+
+
+
+// View animation
+- (IBAction)expandMENU:(id)sender {
+
+
+    if(self.isExpand)
+    {
+        [UIView animateWithDuration:0.5
+                              delay:0.1
+                            options: UIViewAnimationCurveEaseOut
+                         animations:^
+         {
+             CGRect frame =self.view2.frame;
+             frame.origin.y = 0;
+             frame.origin.x =-frame.size.width;
+             self.view2.frame = frame;
+             
+             CGRect frame1 =self.view3.frame;
+             frame1.origin.y = 0;
+             frame1.origin.x =0;
+             self.view3.frame = frame1;
+             
+         }
+                         completion:^(BOOL finished)
+         {
+             self.isExpand=false;
+             NSLog(@"Completed");
+             
+         }];
+
+    }else
+    {
+    [UIView animateWithDuration:0.5
+                          delay:0.1
+                        options: UIViewAnimationCurveEaseOut
+                     animations:^
+     {
+         CGRect frame =self.view2.frame;
+         frame.origin.y = 0;
+         frame.origin.x =0;
+         self.view2.frame = frame;
+         
+         CGRect frame1 =self.view3.frame;
+         frame1.origin.y = 0;
+         frame1.origin.x =frame.size.width;
+         self.view3.frame = frame1;
+         
+     }
+                     completion:^(BOOL finished)
+     {
+         self.isExpand=true;
+         NSLog(@"Completed");
+         
+     }];
+    }
+}
