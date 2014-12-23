@@ -219,3 +219,14 @@ CGContextRelease(writeContext);
      }];
     }
 }
+
+ NSString *fileName = @"Demo.pdf";
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    pdfFileName = [documentsDirectory stringByAppendingPathComponent:fileName];
+    NSString *rtf_path = [[NSBundle mainBundle] pathForResource:@"Example" ofType:@"rtf"];
+    self.PDFCreator = [NDHTMLtoPDF createPDFWithURL:[NSURL fileURLWithPath:rtf_path]
+                                         pathForPDF:pdfFileName
+                                           delegate:self
+                                           pageSize:kPaperSizeLetter
+                                            margins:UIEdgeInsetsMake(10, 5, 10, 5)];
