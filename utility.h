@@ -465,3 +465,37 @@
 }
 
 @end
+//Curl animation
+CGPoint startPosition;
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    
+    UITouch *touch = [touches anyObject];
+    startPosition = [touch locationInView:self.view];
+}
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+    
+    UITouch *touch = [touches anyObject];
+    CGPoint endPosition = [touch locationInView:self.view];
+    
+    if (startPosition.x < endPosition.x) {
+        [UIView transitionWithView:self.view
+                          duration:1.5
+                           options:UIViewAnimationOptionTransitionCurlDown
+                        animations:^ { self.view.alpha = 0; }
+                        completion:nil];
+        NSLog(@"Right");
+       
+        // Right swipe
+    } else {
+                NSLog(@"Left");
+        
+        
+        [UIView transitionWithView:self.view
+                          duration:1.5
+                           options:UIViewAnimationOptionTransitionCurlUp
+                        animations:^ {
+                            self.view.alpha = 0; }
+                        completion:nil ];
+        // Left swipe
+    }
+}
