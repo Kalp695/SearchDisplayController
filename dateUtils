@@ -1,0 +1,16 @@
+
+-(NSDate *)getLastdateOfMonth:(NSDate *)date
+{
+    NSCalendar *gregCalendar=[[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar] ;
+    
+    NSDateComponents *components=[gregCalendar components:NSMonthCalendarUnit|NSYearCalendarUnit fromDate:date];
+    NSCalendar* cal = [NSCalendar currentCalendar];
+    NSRange currentRange = [cal rangeOfUnit:NSDayCalendarUnit inUnit:NSMonthCalendarUnit forDate:date];
+    NSInteger numberOfDays = currentRange.length;
+    
+    [components setDay:numberOfDays];
+    return [[gregCalendar dateFromComponents:components] dateByAddingTimeInterval:0];
+}
+
+
+
