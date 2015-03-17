@@ -1,0 +1,76 @@
+//CustomBackButtonNavController.h
+
+@import UIKit;
+
+@interface CustomBackButtonNavController : UINavigationController
+@end
+
+//CustomBackButtonNavController.m
+
+#import "CustomBackButtonNavController.h"
+
+@implementation CustomBackButtonNavController
+@end
+
+//CustomBackButtonDetailViewController.h
+@import UIKit;
+
+@interface CustomBackButtonDetailViewController : UIViewController
+
+@property (nonatomic, strong) NSString *city;
+
+@end
+
+//CustomBackButtonDetailViewController.m
+
+#import "CustomBackButtonDetailViewController.h"
+
+@interface CustomBackButtonDetailViewController ()
+@property (nonatomic, weak) IBOutlet UILabel *cityLabel;
+@end
+
+
+@implementation CustomBackButtonDetailViewController
+
+//| ----------------------------------------------------------------------------
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    self.cityLabel.text = self.city;
+}
+
+@end
+
+
+place this code where you have to customize back button
+
+#import "CustomBackButtonNavController.h"
+
+
+// Note that images configured as the back bar button's background do
+    // not have the current tintColor applied to them, they are displayed
+    // as it.
+    UIImage *backButtonBackgroundImage = [UIImage imageNamed:@"Menu"];
+    // The background should be pinned to the left and not stretch.
+    backButtonBackgroundImage = [backButtonBackgroundImage resizableImageWithCapInsets:UIEdgeInsetsMake(0, backButtonBackgroundImage.size.width - 1, 0, 0)];
+    
+    id appearance = [UIBarButtonItem appearanceWhenContainedIn:[CustomBackButtonNavController class], nil];
+    [appearance setBackButtonBackgroundImage:backButtonBackgroundImage forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
+    
+    // Provide an empty backBarButton to hide the 'Back' text present by
+    // default in the back button.
+    //
+    // NOTE: You do not need to provide a target or action.  These are set
+    //       by the navigation bar.
+    // NOTE: Setting the title of this bar button item to ' ' (space) works
+    //       around a bug in iOS 7.0.x where the background image would be
+    //       horizontally compressed if the back button title is empty.
+    UIBarButtonItem *backBarButton = [[UIBarButtonItem alloc] initWithTitle:@" " style:UIBarButtonItemStylePlain target:nil action:NULL];
+    self.navigationItem.backBarButtonItem = backBarButton;
+    
+    // NOTE: There is a bug in iOS 7.0.x where the background of the back bar
+    //       button item will not appear until the back button has been tapped
+    //       once.
+
+
