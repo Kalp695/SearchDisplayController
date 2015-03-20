@@ -49,4 +49,42 @@
 }
 
 
+For scrolling images
+
+    [NSTimer scheduledTimerWithTimeInterval:2 target:self selector:@selector(scrollingTimer) userInfo:nil repeats:YES];
+
+- (void)scrollingTimer {
+    // access the scroll view with the tag
+    UIScrollView *scrMain = (UIScrollView*) [self.view viewWithTag:1];
+    // same way, access pagecontroll access
+    UIPageControl *pgCtr = (UIPageControl*) [self.view viewWithTag:12];
+    // get the current offset ( which page is being displayed )
+    CGFloat contentOffset = scrMain.contentOffset.x;
+    // calculate next page to display
+    int nextPage = (int)(contentOffset/scrMain.frame.size.width) + 1 ;
+    // if page is not 10, display it
+    if( nextPage!=imagesName.count )  {
+        [scrMain scrollRectToVisible:CGRectMake(nextPage*scrMain.frame.size.width, 0, scrMain.frame.size.width, scrMain.frame.size.height) animated:YES];
+        pgCtr.currentPage=nextPage;
+        // else start sliding form 1 :)
+    } else {
+        [scrMain scrollRectToVisible:CGRectMake(0, 0, scrMain.frame.size.width, scrMain.frame.size.height) animated:YES];
+        pgCtr.currentPage=0;
+    }
+}
+
+
+
+
+#pragma mark - ImageView Methods
+-(void)showImage
+{
+    JTSImageInfo *imageInfo = [[JTSImageInfo alloc] init];
+      imageInfo.image=[UIImage imageNamed:[NSString stringWithFormat:@"%@",[imagesName objectAtIndex:cuttentindex]]];
+    imageInfo.referenceView = self.view;
+    // Setup view controller
+    JTSImageViewController *imageViewer = [[JTSImageViewController alloc]                                           initWithImageInfo:imageInfo mode:JTSImageViewControllerMode_Image                                       backgroundStyle:JTSImageViewControllerBackgroundOption_Blurred];
+    // Present the view controller.
+    [imageViewer showFromViewController:self transition:JTSImageViewControllerTransition_FromOffscreen];
+}
 
