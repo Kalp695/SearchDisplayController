@@ -1,0 +1,39 @@
+
+        if (![[NSFileManager defaultManager] fileExistsAtPath:[self dataFilePath]]) {
+            [[NSFileManager defaultManager] createFileAtPath: [self dataFilePath] contents:nil attributes:nil];
+            NSLog(@"Route creato");
+        }
+        
+        NSMutableString *writeString = [NSMutableString stringWithCapacity:0]; //don't worry about the capacity, it will expand as necessary
+         NSString *writeStr=@"";
+        for (int i=0; i<[arrDiaryData count]; i++) {
+            
+            Diary *objDiary=[arrDiaryData objectAtIndex:i];
+            NSString *type;
+            
+                    if([objDiary.type isEqualToString:@"BP"])
+            {
+                NSArray *arr=[objDiary.info componentsSeparatedByString:@","];
+
+                type=[NSString stringWithFormat:@"SYS : %@   DIA %@",[arr objectAtIndex:0],[arr objectAtIndex:1]];
+
+            }
+            else
+            {
+                type=objDiary.type;
+            }
+            NSString *writeStr1=[NSString stringWithFormat:@"%@, %@, %@, \n",objDiary.date,objDiary.type,type];
+            [writeString appendString:writeStr1];
+        
+                           }
+    //writeString =[writeStr mutableCopy]; //the \n will put a newline in
+
+    //Moved this stuff out of the loop so that you write the complete string once and only once.
+    NSLog(@"writeString :%@",writeString);
+    
+    NSFileHandle *handle;
+    handle = [NSFileHandle fileHandleForWritingAtPath: [self dataFilePath] ];
+    //say to handle where's the file fo write
+    [handle truncateFileAtOffset:[handle seekToEndOfFile]];
+    //position handle cursor to the end of file
+    [handle writeData:[writeString dataUsingEncoding:NSUTF8StringEncoding]];
