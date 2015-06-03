@@ -1,0 +1,72 @@
+
+NSError *err = nil;
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    audioSession.delegate=self;
+	[audioSession setCategory :AVAudioSessionCategoryPlayAndRecord error:&err];
+    [[AVAudioSession sharedInstance] setActive: YES error: nil];
+    UInt32 doChangeDefault = 1;
+    AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof(doChangeDefault), &doChangeDefault);
+	if(err){
+        NSLog(@"audioSession: %@ %d %@", [err domain], [err code], [[err userInfo] description]);
+        return;
+	}
+   
+	err = nil;
+	if(err){
+        NSLog(@"audioSession: %@ %d %@", [err domain], [err code], [[err userInfo] description]);
+        return;
+	}
+	
+
+    if ([strEx isEqualToString:@"wav"]) {
+         [recordSetting setObject:[NSNumber numberWithInt: kAudioFormatLinearPCM] forKey: AVFormatIDKey];
+    }
+    else if([strEx isEqualToString:@"caf"]){
+        [recordSetting setValue :[NSNumber numberWithInt:kAudioFormatAppleIMA4] forKey:AVFormatIDKey];
+
+    }
+    else{
+        [recordSetting setValue :[NSNumber numberWithInt:kAudioFormatAppleLossless] forKey:AVFormatIDKey];
+
+    }
+    [recordSetting setObject:[NSNumber numberWithFloat:44100.0] forKey: AVSampleRateKey];
+    [recordSetting setObject:[NSNumber numberWithInt:2] forKey:AVNumberOfChannelsKey];
+    [recordSetting setObject:[NSNumber numberWithInt:16] forKey:AVLinearPCMBitDepthKey];
+    
+    [recordSetting setObject:[NSNumber numberWithBool:NO] forKey:AVLinearPCMIsBigEndianKey];
+    [recordSetting setObject:[NSNumber numberWithBool:NO] forKey:AVLinearPCMIsFloatKey]; 
+  
+    if ([Quality isEqualToString:@"Low"]) {
+        [recordSetting setObject:[NSNumber numberWithInt: AVAudioQualityLow] forKey: AVEncoderAudioQualityKey];
+        [recordSetting setObject:[NSNumber numberWithInt: AVAudioQualityLow] forKey:AVSampleRateConverterAudioQualityKey]; 
+       
+    }
+    else if([Quality isEqualToString:@"Medium"]){
+        [recordSetting setObject:[NSNumber numberWithInt: AVAudioQualityMedium] forKey: AVEncoderAudioQualityKey];
+        [recordSetting setObject:[NSNumber numberWithInt: AVAudioQualityMedium] forKey:AVSampleRateConverterAudioQualityKey]; 
+    }
+    else{
+        [recordSetting setObject:[NSNumber numberWithInt: AVAudioQualityMax] forKey: AVEncoderAudioQualityKey];
+         [recordSetting setObject:[NSNumber numberWithInt: AVAudioQualityMax] forKey:AVSampleRateConverterAudioQualityKey];  
+    }
+	
+
+	NSURL *url = [NSURL fileURLWithPath:fileToRecord];
+	
+	err = nil;
+	
+	NSData *audioData = [NSData dataWithContentsOfFile:[url path] options: 0 error:&err];
+	if(audioData)
+	{
+		NSFileManager *fm = [NSFileManager defaultManager];
+		[fm removeItemAtPath:[url path] error:&err];
+	}
+	
+	err = nil;
+	audioRecorder = [[ AVAudioRecorder alloc] initWithURL:url settings:recordSetting error:&err];
+	//prepare to record
+	[audioRecorder setDelegate:self];
+	[audioRecorder prepareToRecord];
+	audioRecorder.meteringEnabled = YES;
+
+	
